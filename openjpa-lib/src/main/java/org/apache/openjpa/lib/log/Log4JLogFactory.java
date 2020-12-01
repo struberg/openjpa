@@ -18,11 +18,13 @@
  */
 package org.apache.openjpa.lib.log;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import org.apache.openjpa.lib.util.ClassUtil;
 
 /**
  * {@link LogFactory} implementation that delegates to the Log4J framework.
+ *
+ * This class will automatically detect which version of log4j is available and adopt to it.
  *
  * @author Patrick Linskey
  */
@@ -30,22 +32,27 @@ public class Log4JLogFactory extends LogFactoryAdapter {
 
     @Override
     protected Log newLogAdapter(String channel) {
-        return new LogAdapter(LogManager.getLogger(channel));
+        if (ClassUtil.classExists("org.apache.logging.log4j.LogManager", this.getClass().getClassLoader())) {
+            return new Log4J2Adapter(channel);
+        }
+        else {
+            return new Log4J1Adapter(channel);
+        }
     }
 
     /**
-     * Adapts a Log4J logger to the {@link org.apache.openjpa.lib.log.Log}
+     * Adapts a Log4J-2.x logger to the {@link org.apache.openjpa.lib.log.Log}
      * interface.
      */
-    public static class LogAdapter implements Log {
+    public static class Log4J2Adapter implements Log {
 
-        private Logger _log;
+        private org.apache.logging.log4j.Logger _log;
 
-        private LogAdapter(Logger wrapee) {
-            _log = wrapee;
+        private Log4J2Adapter(String channel) {
+            _log = org.apache.logging.log4j.LogManager.getLogger(channel);
         }
 
-        public Logger getDelegate() {
+        public org.apache.logging.log4j.Logger getDelegate() {
             return _log;
         }
 
@@ -72,6 +79,100 @@ public class Log4JLogFactory extends LogFactoryAdapter {
         @Override
         public boolean isFatalEnabled() {
             return _log.isFatalEnabled();
+        }
+
+        @Override
+        public void trace(Object o) {
+            _log.debug(o);
+        }
+
+        @Override
+        public void trace(Object o, Throwable t) {
+            _log.debug(o, t);
+        }
+
+        @Override
+        public void info(Object o) {
+            _log.info(o);
+        }
+
+        @Override
+        public void info(Object o, Throwable t) {
+            _log.info(o, t);
+        }
+
+        @Override
+        public void warn(Object o) {
+            _log.warn(o);
+        }
+
+        @Override
+        public void warn(Object o, Throwable t) {
+            _log.warn(o, t);
+        }
+
+        @Override
+        public void error(Object o) {
+            _log.error(o);
+        }
+
+        @Override
+        public void error(Object o, Throwable t) {
+            _log.error(o, t);
+        }
+
+        @Override
+        public void fatal(Object o) {
+            _log.fatal(o);
+        }
+
+        @Override
+        public void fatal(Object o, Throwable t) {
+            _log.fatal(o, t);
+        }
+    }
+
+
+
+    /**
+     * Adapts a Log4J-1.x logger to the {@link org.apache.openjpa.lib.log.Log}
+     * interface.
+     */
+    public static class Log4J1Adapter implements Log {
+
+        private org.apache.log4j.Logger _log;
+
+        private Log4J1Adapter(String channel) {
+            _log = org.apache.log4j.LogManager.getLogger(channel);
+        }
+
+        public org.apache.log4j.Logger getDelegate() {
+            return _log;
+        }
+
+        @Override
+        public boolean isTraceEnabled() {
+            return _log.isEnabledFor(org.apache.log4j.Level.DEBUG);
+        }
+
+        @Override
+        public boolean isInfoEnabled() {
+            return _log.isEnabledFor(org.apache.log4j.Level.INFO);
+        }
+
+        @Override
+        public boolean isWarnEnabled() {
+            return _log.isEnabledFor(org.apache.log4j.Level.WARN);
+        }
+
+        @Override
+        public boolean isErrorEnabled() {
+            return _log.isEnabledFor(org.apache.log4j.Level.ERROR);
+        }
+
+        @Override
+        public boolean isFatalEnabled() {
+            return _log.isEnabledFor(org.apache.log4j.Level.FATAL);
         }
 
         @Override

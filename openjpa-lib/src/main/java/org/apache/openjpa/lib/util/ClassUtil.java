@@ -113,6 +113,25 @@ public final class ClassUtil {
     }
 
     /**
+     * Check whether the class with the given FQN exists
+     * @param className name of the class to check.
+     * @param loader ClassLoader to use or {@code null} to use the current TCCL
+     */
+    public static boolean classExists(String className, ClassLoader loader) {
+       try {
+           if (loader == null) {
+               loader = Thread.currentThread().getContextClassLoader();
+           }
+
+           Class.forName(className, false, loader);
+           return true;
+       }
+       catch (ClassNotFoundException | NoClassDefFoundError e) {
+           return false;
+       }
+    }
+
+    /**
      * Return only the class name, without package.
      */
     public static String getClassName(Class cls) {
